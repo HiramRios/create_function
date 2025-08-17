@@ -1,3 +1,11 @@
 type FunctionConfiguration {
   message: String
 }
+
+type Query {
+  functionConfiguration: FunctionConfiguration
+}
+
+schema {
+  query: Query
+}
