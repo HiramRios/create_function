@@ -3,7 +3,7 @@
 client_id = "434f338d86d13f8b88edf2c88bda32df"
 name = "b2b-variant-aggregate"
 handle = "b2b-variant-aggregate"
-application_url = "https://cancel-verde-railroad-senate.trycloudflare.com"
+application_url = "https://howard-particular-satisfy-coral.trycloudflare.com"
 embedded = true
 
 [build]
@@ -18,7 +18,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://cancel-verde-railroad-senate.trycloudflare.com/auth/callback", "https://cancel-verde-railroad-senate.trycloudflare.com/auth/shopify/callback", "https://cancel-verde-railroad-senate.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://howard-particular-satisfy-coral.trycloudflare.com/auth/callback", "https://howard-particular-satisfy-coral.trycloudflare.com/auth/shopify/callback", "https://howard-particular-satisfy-coral.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
