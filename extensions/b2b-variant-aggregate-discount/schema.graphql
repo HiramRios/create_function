@@ -3,6 +3,7 @@ type FunctionConfiguration {
 }
 
 type Query {
+
   cart: Cart
   discount: Discount
   functionConfiguration: FunctionConfiguration
@@ -64,6 +65,7 @@ type Product {
   id: ID!
   title: String
 }
+
 
 schema {
   query: Query
