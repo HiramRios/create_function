@@ -1,0 +1,25 @@
+query Input {
+  cart {
+    buyerIdentity {
+      company { id name }
+      companyLocation { id name }
+    }
+    lines {
+      id
+      quantity
+      cost {
+        amountPerQuantity {
+          amount
+          currencyCode
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product { id title }
+        }
+      }
+    }
+  }
+}
