@@ -1,169 +1,72 @@
 import {describe, it, expect} from "vitest";
 
 import {cartLinesDiscountsGenerateRun} from "./cart_lines_discounts_generate_run";
-import {
-  OrderDiscountSelectionStrategy,
-  ProductDiscountSelectionStrategy,
-  DiscountClass,
-} from "../generated/api";
+import {DiscountClass} from "../generated/api";
 
 /**
-  * @typedef {import("../generated/api").CartLinesDiscountsGenerateRunResult} CartLinesDiscountsGenerateRunResult
-  */
+ * @typedef {import("../generated/api").CartLinesDiscountsGenerateRunResult} CartLinesDiscountsGenerateRunResult
+ */
 
 describe("cartLinesDiscountsGenerateRun", () => {
   const baseInput = {
     cart: {
+      buyerIdentity: {
+        purchasingCompany: {company: {name: "College/gyms/other"}},
+      },
       lines: [
         {
           id: "gid://shopify/CartLine/0",
+          quantity: 2,
+          merchandise: {product: {id: "gid://shopify/Product/1"}},
           cost: {
-            subtotalAmount: {
-              amount: 100,
-            },
+            amountPerQuantity: {amount: "40"},
+            subtotalAmount: {amount: 80},
+          },
+        },
+        {
+          id: "gid://shopify/CartLine/1",
+          quantity: 1,
+          merchandise: {product: {id: "gid://shopify/Product/1"}},
+          cost: {
+            amountPerQuantity: {amount: "40"},
+            subtotalAmount: {amount: 40},
           },
         },
       ],
     },
-    discount: {
-      discountClasses: [],
-    },
+    discount: {discountClasses: [DiscountClass.Product]},
   };
 
-  it("returns empty operations when no discount classes are present", () => {
+  it("applies volume pricing across variants of the same product", () => {
+    const result = cartLinesDiscountsGenerateRun(baseInput);
+    expect(result.operations).toHaveLength(2);
+    result.operations.forEach((op, index) => {
+      expect(op).toMatchObject({
+        productDiscountsAdd: {
+          candidates: [
+            {
+              targets: [{cartLine: {id: `gid://shopify/CartLine/${index}`}}],
+              value: {
+                fixedAmount: {
+                  amount: "5.00",
+                  appliesToEachItem: true,
+                },
+              },
+            },
+          ],
+          selectionStrategy: expect.any(String),
+        },
+      });
+    });
+  });
+
+  it("returns no discounts when discount class is missing", () => {
     const input = {
       ...baseInput,
-      discount: {
-        discountClasses: [],
-      },
+      discount: {discountClasses: []},
     };
-
     const result = cartLinesDiscountsGenerateRun(input);
     expect(result.operations).toHaveLength(0);
   });
-
-  it("returns only order discount when only order discount class is present", () => {
-    const input = {
-      ...baseInput,
-      discount: {
-        discountClasses: [DiscountClass.Order],
-      },
-    };
-
-    const result = cartLinesDiscountsGenerateRun(input);
-    expect(result.operations).toHaveLength(1);
-    expect(result.operations[0]).toMatchObject({
-      orderDiscountsAdd: {
-        candidates: [
-          {
-            message: "10% OFF ORDER",
-            targets: [
-              {
-                orderSubtotal: {
-                  excludedCartLineIds: [],
-                },
-              },
-            ],
-            value: {
-              percentage: {
-                value: 10,
-              },
-            },
-          },
-        ],
-        selectionStrategy: OrderDiscountSelectionStrategy.First,
-      },
-    });
-  });
-
-  it("returns only product discount when only product discount class is present", () => {
-    const input = {
-      ...baseInput,
-      discount: {
-        discountClasses: [DiscountClass.Product],
-      },
-    };
-
-    const result = cartLinesDiscountsGenerateRun(input);
-    expect(result.operations).toHaveLength(1);
-    expect(result.operations[0]).toMatchObject({
-      productDiscountsAdd: {
-        candidates: [
-          {
-            message: "20% OFF PRODUCT",
-            targets: [
-              {
-                cartLine: {
-                  id: "gid://shopify/CartLine/0",
-                },
-              },
-            ],
-            value: {
-              percentage: {
-                value: 20,
-              },
-            },
-          },
-        ],
-        selectionStrategy: ProductDiscountSelectionStrategy.First,
-      },
-    });
-  });
-
-  it("returns both discounts when both discount classes are present", () => {
-    const input = {
-      ...baseInput,
-      discount: {
-        discountClasses: [DiscountClass.Order, DiscountClass.Product],
-      },
-    };
-
-    const result = cartLinesDiscountsGenerateRun(input);
-    expect(result.operations).toHaveLength(2);
-    expect(result.operations[0]).toMatchObject({
-      orderDiscountsAdd: {
-        candidates: [
-          {
-            message: "10% OFF ORDER",
-            targets: [
-              {
-                orderSubtotal: {
-                  excludedCartLineIds: [],
-                },
-              },
-            ],
-            value: {
-              percentage: {
-                value: 10,
-              },
-            },
-          },
-        ],
-        selectionStrategy: OrderDiscountSelectionStrategy.First,
-      },
-    });
-
-    expect(result.operations[1]).toMatchObject({
-      productDiscountsAdd: {
-        candidates: [
-          {
-            message: "20% OFF PRODUCT",
-            targets: [
-              {
-                cartLine: {
-                  id: "gid://shopify/CartLine/0",
-                },
-              },
-            ],
-            value: {
-              percentage: {
-                value: 20,
-              },
-            },
-          },
-        ],
-        selectionStrategy: ProductDiscountSelectionStrategy.First,
-      },
-    });
-  });
 });
+
